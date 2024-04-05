@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import { get } from 'svelte/store';
 import { persisted } from 'svelte-local-storage-store';
 import { KeyManager, KeyManagerPlugins, KeyType } from '@stellar/wallet-sdk';
-import { TransactionBuilder } from 'stellar-sdk';
+import { TransactionBuilder } from '@stellar/stellar-sdk';
 
 /** @typedef {import('stellar-sdk').Transaction} Transaction */
 
