@@ -15,7 +15,7 @@ import { TransactionBuilder } from '@stellar/stellar-sdk';
  */
 
 function createWalletStore() {
-	// /** @type {import('svelte/store').Writable<walletStore>} */
+	/** @type {import('svelte/store').Writable<WalletStore>} */
 	const { subscribe, set } = persisted('bpa:walletStore', { keyId: '', publicKey: '' });
 
 	return {

@@ -22,6 +22,61 @@
 
 	import { errorMessage } from '$lib/stores/alertsStore';
 	import { walletStore } from '$lib/stores/walletStore';
+	import ErrorAlert from './ErrorAlert.svelte';
+
+	import { getContext } from 'svelte';
+	const { close } = getContext('simple-modal');
+
+	// `onConfirm` is a dummy function that will be overridden from the
+	// component that launches the modal
+	export let onConfirm = async () => {};
+	// `_onConfirm` is actually run when the user clicks the modal's "confirm"
+	// button, and calls (in-turn) the supplied `onConfirm` function
+	const _onConfirm = async () => {
+		// We set an `isWaiting` variable to track whether or not the confirm
+		// function is still running
+		isWaiting = true;
+
+		try {
+			// We make sure the user has supplied the correct pincode
+			await walletStore.confirmPincode({
+				pincode: pincode,
+				firstPincode: firstPincode,
+				signup: firstPincode ? true : false
+			});
+
+			// We call the `onConfirm` function that was given to the modal by
+			// the outside component. This method allows each page that needs to
+			// display a modal to independantly customize the behavior that
+			// should take place when the pincode is confirmed. (i.e., submit
+			// the transaction to the network, login to the app, etc.)
+			// @ts-ignore
+			await onConfirm(pincode);
+
+			// Now we can close the modal window
+			close();
+		} catch (err) {
+			// If there was an error, we set our `errorMessage` alert
+			// @ts-ignore
+			errorMessage.set(err.body.message);
+		}
+		isWaiting = false;
+	};
+
+	// Just like above, `onReject` is a dummy function that will be overridden
+	// from the component that launches the modal
+	export let onReject = () => {};
+	// Just like above, `_onReject` is actually run when the user clicks the
+	// modal's "reject" button, and calls (if provided) the supplied `onReject`
+	// function
+	const _onReject = () => {
+		// We call the `onReject` function that was given to the modal by the
+		// outside component. This allows each page that needs to display a
+		// modal to independently customize the behavior that should take place
+		// when the pincode is rejected
+		onReject();
+		close();
+	};
 
 	export let title = 'Transaction Preview';
 	export let body =
@@ -52,6 +107,85 @@
 </script>
 
 <div class="prose p-3">
-	<!-- <h1>{title}</h1>
-	<p>{body}</p> -->
+	<h1>{title}</h1>
+	<p>{body}</p>
+
+	{#if transaction}
+		<!-- General, transaction-level information -->
+		<h2>Transaction Details</h2>
+		<p>Network: <code>{transaction.networkPassphrase}</code></p>
+		<p>Source: <code>{transaction.source}</code></p>
+		<p>Sequence Number: <code>{transaction.sequence}</code></p>
+		<p>Fee: <code>{transaction.fee}</code></p>
+
+		{#if 'memo' in transaction}
+			<p>
+				Memo ({transaction.memo.type}):
+				<code
+					>{transaction.memo.type === 'text'
+						? transaction.memo?.value?.toString('utf-8')
+						: transaction.memo.type === 'hash'
+							? transaction.memo?.value?.toString('base64')
+							: transaction.memo.value}
+				</code>
+			</p>
+		{/if}
+
+		<!-- Specifics about the operation(s) present in the transaction -->
+		<h2>Operations</h2>
+		<ol start="0">
+			{#each transaction.operations as operation, i}
+				<li>Operation {i}</li>
+				<ul>
+					{#each Object.entries(operation) as [key, value]}
+						<li>{key}: <code>{value}</code></li>
+					{/each}
+				</ul>
+			{/each}
+		</ol>
+
+		<!-- The transaction in XDR format, just because it's helpful to have sometimes -->
+		<h2>Transaction XDR</h2>
+		<p>
+			Below, the entire (unsigned) transaction is displayed in XDR format. You can confirm the
+			deatils of it by checking the "View XDR" page of the <a
+				href="https://laboratory.stellar.org/#xdr-viewer?type=TransactionEnvelope&network=test"
+				target="_blank"
+				rel="noopener, noreferrer">Stellar Laboratory</a
+			>.
+		</p>
+		<div class="relative">
+			<pre class="whitespace-normal break-words">{transactionXDR}</pre>
+			<button
+				class="btn-ghost btn-square btn-sm btn absolute bottom-1 right-1"
+				use:copy={transactionXDR}
+			>
+				<CopyIcon size="16" />
+			</button>
+		</div>
+	{/if}
+
+	<!-- ErrorAlert will be displayed whenever the errorMessage is truthy -->
+	<ErrorAlert />
+
+	<!-- Display the pincode form: the input element, and the "confirm" and "reject" buttons -->
+	{#if hasPincodeForm}
+		<form>
+			<div class="form-control">
+				<label class="label" for="pincode">
+					<span class="label-text">Confirm Pincode</span>
+				</label>
+				<input type="password" id="pincode" class="input-bordered input" bind:value={pincode} />
+			</div>
+			<div class="my-6 flex justify-end gap-3">
+				<button on:click|preventDefault={_onConfirm} class="btn-success btn" disabled={isWaiting}>
+					{#if isWaiting}<span class="loading loading-spinner loading-sm" />{/if}
+					{confirmButton}
+				</button>
+				<button on:click|preventDefault={_onReject} class="btn-error btn" disabled={isWaiting}>
+					{rejectButton}
+				</button>
+			</div>
+		</form>
+	{/if}
 </div>
