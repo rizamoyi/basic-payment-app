@@ -6,21 +6,21 @@
 	 */
 
 	// `AssetStats` will display an overview of the users's account balances
-	import AssetStats from './components/AssetStats.svelte';
+	// import AssetStats from './components/AssetStats.svelte';
 	// `RecentPayments` will show a brief history of payments to/from the user
-	import RecentPayments from './components/RecentPayments.svelte';
+	// import RecentPayments from './components/RecentPayments.svelte';
 	// `FavoriteContacts` will display all favorited contacts
 	import FavoriteContacts from './components/FavouriteContacts.svelte';
 	// `TransferHistory` will display anchor transfer status information
-	import TransferHistory from './components/TransferHistory.svelte';
+	// import TransferHistory from './components/TransferHistory.svelte';
 </script>
 
-<AssetStats />
+<!-- <AssetStats /> -->
 
 <!-- `RecentPayments` and `FavoriteContacts` displayed as two columns on larger screens -->
 <div class="grid grid-cols-1 gap-10 lg:grid-cols-2">
 	<div class="overflow-x-auto">
-		<RecentPayments />
+		<!-- <RecentPayments /> -->
 	</div>
 	<div class="overflow-x-auto">
 		<FavoriteContacts />
@@ -29,5 +29,5 @@
 
 <!-- `TransferHistory` displayed at the bottom of the dashboard -->
 <div class="overflow-x-auto">
-	<TransferHistory />
+	<!-- <TransferHistory /> -->
 </div>

@@ -1,4 +1,4 @@
-<!--
+<!-- 
 @component
 
 The `/login` page offers the user a chance login and confirm the pincode they
